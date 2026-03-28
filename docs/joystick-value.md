@@ -12,7 +12,7 @@ ybemh02.joystickValue(ybemh02.Axis.X)
 
 ## Returns
 
-* 傾きを表す [number](/types/number)。左／下寄りは負、右／上寄りは正の方向になります（軸と配線に依存します）。
+* 傾きを表す [number](/types/number)。**X** は左寄りが負・右寄りが正。**Y** は上寄りが負・下寄りが正です。
 
 ## Example
 

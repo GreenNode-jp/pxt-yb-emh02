@@ -94,12 +94,13 @@ namespace ybemh02 {
         let raw = pins.analogReadPin(axis as number);
         let center = axis == Axis.X ? centerX : centerY;
         let val = raw > center ? Math.map(raw, center, 1023, 0, 100) : Math.map(raw, 0, center, -100, 0);
+        if (axis == Axis.Y) val = -val;
         return Math.abs(val) < 8 ? 0 : Math.round(val);
     }
 
     /**
      * ジョイスティックが指定した方向に、正規化値の絶対値が閾値以上傾いているかどうかを返します。
-     * `joystickValue` と同じ符号（左右は X、上下は Y。左／下は負、右／上は正）です。
+     * `joystickValue` と同じ符号（X: 左負・右正、Y: 上負・下正）です。
      */
     //% block="ジョイスティックが %direction に傾いている"
     //% help=github:pxt-yb-emh02/docs/joystick-direction
