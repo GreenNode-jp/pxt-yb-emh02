@@ -1,0 +1,7 @@
+node_modules/
+pxt_modules/
+built/
+.DS_Store
+*.log
+.env
+.env.*

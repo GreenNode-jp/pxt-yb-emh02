@@ -1,0 +1,33 @@
+{
+    "name": "pxt-yb-emh02",
+    "displayName": "YB-EMH02 コントローラ",
+    "version": "0.1.0",
+    "description": "コントローラ YB-EMH02",
+    "license": "MIT",
+    "icon": "icon.png",
+    "dependencies": {
+        "core": "*",
+        "microphone": "*"
+    },
+    "files": [
+        "main.ts",
+        "README.md",
+        "LICENSE.txt",
+        "icon.png",
+        "docs/on-button-event.md",
+        "docs/is-button-pressed.md",
+        "docs/joystick-value.md",
+        "docs/joystick-direction.md",
+        "docs/set-vibration.md"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "targetVersions": {
+        "target": "microbit"
+    },
+    "supportedTargets": [
+        "microbit"
+    ],
+    "preferredEditor": "tsprj"
+}
