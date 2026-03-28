@@ -10,7 +10,7 @@ namespace ybemh02 {
     let initialized = false;
     let centerX = 512;
     let centerY = 512;
-    /** `joystickDirection` が真になる最小の絶対値（`joystickValue` の -100〜100 スケール）。 */
+    /** `joystickDirection` が真になる最小の絶対値（`joystickValue` の -127〜127 スケール）。 */
     const JOYSTICK_DIRECTION_THRESHOLD = 80;
 
     /** パッド前面のボタン（B1〜B4）。それぞれマイコン上のデジタルピンに対応します。 */
@@ -21,10 +21,23 @@ namespace ybemh02 {
         B4 = DigitalPin.P16
     }
 
-    /** ジョイスティックの X 軸・Y 軸（アナログピン読み取り）。 */
+    /**
+     * ジョイスティックの X 軸・Y 軸（アナログピン読み取り）、または XY 複合（`x + 256 * y`）。
+     * `XY` はピン番号ではないため `joystickValue` 内で分岐します。
+     */
     export enum Axis {
         X = AnalogPin.P2,
-        Y = AnalogPin.P1
+        Y = AnalogPin.P1,
+        //% block="XY（x+256y）"
+        XY = -1
+    }
+
+    /** `unpackJoystickValue` で X か Y のどちらを取り出すか。 */
+    export enum JoystickAxis {
+        //% block="X"
+        X = 0,
+        //% block="Y"
+        Y = 1
     }
 
     /** ジョイスティックの傾き方向。`joystickDirection` でしきい値以上かどうかを調べます。 */
@@ -85,17 +98,38 @@ namespace ybemh02 {
 
     /**
      * ジョイスティックの傾きを、起動時の中心を基準に正規化した数値で返します。
-     * 戻り値の範囲はおおよそ -100（一端）から 100（反対側）です。中央付近は小さなデッドゾーンがあり 0 になります。
+     * X・Y はおおよそ -127〜127。**戻り値は常に整数**（デッドゾーンはマップ直後の値で判定し、それ以外は四捨五入）。`Axis.XY` は `x + 256 * y`。
+     * 中央付近は小さなデッドゾーンがあり 0 になります。
      */
     //% block="ジョイスティック %axis の値"
     //% help=github:pxt-yb-emh02/docs/joystick-value
     export function joystickValue(axis: Axis): number {
         init();
+        if (axis == Axis.XY) {
+            let jx = joystickValueAxis(Axis.X);
+            let jy = joystickValueAxis(Axis.Y);
+            return jx + 256 * jy;
+        }
+        return joystickValueAxis(axis);
+    }
+
+    function joystickValueAxis(axis: Axis): number {
         let raw = pins.analogReadPin(axis as number);
         let center = axis == Axis.X ? centerX : centerY;
-        let val = raw > center ? Math.map(raw, center, 1023, 0, 100) : Math.map(raw, 0, center, -100, 0);
+        let val = raw > center ? Math.map(raw, center, 1023, 0, 127) : Math.map(raw, 0, center, -127, 0);
         val = -val;
         return Math.abs(val) < 8 ? 0 : Math.round(val);
+    }
+
+    /**
+     * `joystickValue(Axis.XY)` の戻り値（`x + 256 * y`）から X または Y 成分を取り出します。
+     */
+    //% block="ジョイスティック複合 %packed の %component"
+    //% help=github:pxt-yb-emh02/docs/unpack-joystick-value
+    export function unpackJoystickValue(packed: number, component: JoystickAxis): number {
+        let jy = Math.trunc(packed / 256);
+        let jx = packed - 256 * jy;
+        return component == JoystickAxis.X ? jx : jy;
     }
 
     /**

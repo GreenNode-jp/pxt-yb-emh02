@@ -26,6 +26,7 @@ MakeCode上から、ブロックを右クリック→ヘルプ　でも同じも
 - [isButtonPressed](docs/is-button-pressed.md)
 - [joystickDirection](docs/joystick-direction.md)
 - [joystickValue](docs/joystick-value.md)
+- [unpackJoystickValue](docs/unpack-joystick-value.md)
 - [onButtonEvent](docs/on-button-event.md)
 - [setVibration](docs/set-vibration.md)
 

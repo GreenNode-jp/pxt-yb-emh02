@@ -19,9 +19,9 @@ basic.forever(function () {
 
     // マッピングの入れ替え ＆ LED左右反転
     // newLED_X (LED左右) <- yInput(物理上下) : 0-4 を 4-0 にして左右反転
-    let newLED_X = Math.round(Math.map(yInput, -100, 100, 4, 0)) 
+    let newLED_X = Math.round(Math.map(yInput, -127, 127, 4, 0)) 
     // newLED_Y (LED上下) <- xInput(物理左右)
-    let newLED_Y = Math.round(Math.map(xInput, -100, 100, 0, 4))
+    let newLED_Y = Math.round(Math.map(xInput, -127, 127, 0, 4))
 
     if (newLED_X != lastLED_X || newLED_Y != lastLED_Y) {
         led.unplot(lastLED_X, lastLED_Y)

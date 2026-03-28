@@ -16,6 +16,7 @@
         "docs/on-button-event.md",
         "docs/is-button-pressed.md",
         "docs/joystick-value.md",
+        "docs/unpack-joystick-value.md",
         "docs/joystick-direction.md",
         "docs/set-vibration.md"
     ],
