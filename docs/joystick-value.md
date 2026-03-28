@@ -12,7 +12,7 @@ ybemh02.joystickValue(ybemh02.Axis.X)
 
 ## Returns
 
-* 傾きを表す [number](/types/number)。**X** は左寄りが負・右寄りが正。**Y** は上寄りが負・下寄りが正です。
+* 傾きを表す [number](/types/number)。**X** は左寄りが正・右寄りが負。**Y** は上寄りが負・下寄りが正です。
 
 ## Example
 
@@ -22,9 +22,9 @@ X の傾きで左右にドットを動かす例です。
 basic.forever(function () {
     let x = ybemh02.joystickValue(ybemh02.Axis.X)
     led.unplot(2, 2)
-    if (x < -20) {
+    if (x > 20) {
         led.plot(0, 2)
-    } else if (x > 20) {
+    } else if (x < -20) {
         led.plot(4, 2)
     } else {
         led.plot(2, 2)
