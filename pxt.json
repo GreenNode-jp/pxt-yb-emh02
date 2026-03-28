@@ -6,8 +6,7 @@
     "license": "MIT",
     "icon": "icon.png",
     "dependencies": {
-        "core": "*",
-        "microphone": "*"
+        "core": "*"
     },
     "files": [
         "main.ts",
