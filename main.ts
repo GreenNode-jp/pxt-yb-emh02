@@ -23,8 +23,8 @@ namespace ybemh02 {
 
     /** ジョイスティックの X 軸・Y 軸（アナログピン読み取り）。 */
     export enum Axis {
-        X = AnalogPin.P1,
-        Y = AnalogPin.P2
+        X = AnalogPin.P2,
+        Y = AnalogPin.P1
     }
 
     /** ジョイスティックの傾き方向。`joystickDirection` でしきい値以上かどうかを調べます。 */
