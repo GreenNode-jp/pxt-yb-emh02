@@ -124,7 +124,7 @@ namespace ybemh02 {
     /**
      * `joystickValue(Axis.XY)` の戻り値（`x + 256 * y`）から X または Y 成分を取り出します。
      */
-    //% block="ジョイスティック複合 %packed の %component"
+    //% block="ジョイスティックXY %packed の %component"
     //% help=github:pxt-yb-emh02/docs/unpack-joystick-value
     export function unpackJoystickValue(packed: number, component: JoystickAxis): number {
         let jy = Math.trunc(packed / 256);
@@ -148,9 +148,9 @@ namespace ybemh02 {
             case JoystickDirection.Down:
                 return jy <= -JOYSTICK_DIRECTION_THRESHOLD;
             case JoystickDirection.Left:
-                return jx >= JOYSTICK_DIRECTION_THRESHOLD;
+                return jx <= JOYSTICK_DIRECTION_THRESHOLD;
             case JoystickDirection.Right:
-                return jx <= -JOYSTICK_DIRECTION_THRESHOLD;
+                return jx >= -JOYSTICK_DIRECTION_THRESHOLD;
             default:
                 return false;
         }
