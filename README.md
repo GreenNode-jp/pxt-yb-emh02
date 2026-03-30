@@ -68,3 +68,17 @@ npx pxt build
 ```
 
 エディタ: [makecode.microbit.org](https://makecode.microbit.org)（[beta](https://makecode.microbit.org/beta)）
+
+
+sudo pkill bluetoothd
+
+2. Google公式のWeb Bluetoothテスター
+特定のサービスに限定せず、デバイスを探せる汎用的なツールです。
+
+URL: https://googlechrome.github.io/samples/web-bluetooth/device-info.html
+
+
+chrome://bluetooth-internals/#devices
+
+プロジェクト設定から
+JustWorks pairing (default): Pairing is automatic once the pairing is initiated.
