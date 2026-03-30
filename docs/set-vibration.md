@@ -1,6 +1,6 @@
 # setVibration
 
-振動モータのオン・オフを切り替えます。制御信号はデジタル **P0** に出力されます。
+振動モータ **ON/OFF**（**P0**）。
 
 ```sig
 ybemh02.setVibration(true)
@@ -8,11 +8,9 @@ ybemh02.setVibration(true)
 
 ## Parameters
 
-**on**: `true` で振動オン、`false` でオフ。
+**on**: `true` で ON、`false` で OFF
 
 ## Example
-
-ボタンを押している間だけ振動させる例です。
 
 ```blocks
 basic.forever(function () {
@@ -22,8 +20,7 @@ basic.forever(function () {
 
 ## See also
 
-- **isButtonPressed** — 右クリック → **ヘルプ**
-- **joystickValue** — 右クリック → **ヘルプ**
+**isButtonPressed**, **joystickValue**
 
 ```package
 pxt-yb-emh02=github:GreenNode-jp/pxt-yb-emh02#main

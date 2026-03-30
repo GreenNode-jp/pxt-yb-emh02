@@ -1,6 +1,9 @@
 # joystickValue
 
-ジョイスティックの傾きを、起動時に記録した中心を基準にした数値で返します。**X**・**Y** はおおよそ **-127〜127** で、中央付近はデッドゾーンにより **0** になります。**XY** を選ぶと、同じ正規化した **x**・**y**（整数）について **`x + 256 × y`** を1つの数として返します（無線などで1値だけ送る用途向け。復号は **unpackJoystickValue** で一意にできます）。
+ジョイスティックの傾き（整数）。アナログ **0〜1023** を **`idiv(raw−512±2, 4)`** で量子化し符号を反転、**−127〜127** に収める。**XY** は **`x + 256×y`**。
+
+* **通常**（既定）: 上記の **v** を **`idiv(|v|+8,16)×16−1`** にまとめる（小さい |v| は **0**）。
+* **詳細**: **v** をそのまま返す。
 
 ```sig
 ybemh02.joystickValue(ybemh02.Axis.X)
@@ -8,15 +11,13 @@ ybemh02.joystickValue(ybemh02.Axis.X)
 
 ## Parameters
 
-**axis**: 読み取る軸（**X**、**Y**、または **XY**）。
+**axis**: **X** / **Y** / **XY**
 
 ## Returns
 
-* 傾きを表す [number](/types/number)。**X**・**Y** は四捨五入した**整数**。**X** は左寄りが正・右寄りが負。**Y** は上寄りが負・下寄りが正。**XY** は **`x + 256 × y`** の複合整数です。
+整数。**X**: 左が正。**Y**: 上が負。**XY**: 複合値。
 
 ## Example
-
-X の傾きで左右にドットを動かす例です。
 
 ```blocks
 basic.forever(function () {
@@ -34,7 +35,7 @@ basic.forever(function () {
 
 ## See also
 
-**setVibration** — 該当ブロックを右クリック → **ヘルプ** で同じサイドパネルに開きます。
+**unpackJoystickValue**
 
 ```package
 pxt-yb-emh02=github:GreenNode-jp/pxt-yb-emh02#main
