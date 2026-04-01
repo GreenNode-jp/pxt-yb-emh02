@@ -70,8 +70,12 @@ namespace ybemh02 {
     }
 
     let joystickEventPollerStarted = false;
-    let joystickDominantPrimed = false;
-    let joystickDominantLast = JoystickDirection.Center;
+    let joystickEventPrimed = false;
+    let joystickPrevUp = false;
+    let joystickPrevDown = false;
+    let joystickPrevLeft = false;
+    let joystickPrevRight = false;
+    let joystickPrevCenter = true;
 
     export enum ButtonEvent {
         //% block="押された"
@@ -205,39 +209,38 @@ namespace ybemh02 {
         }
     }
 
-    /**
-     * 主軸で優先方向を 1 つに決める（同程度なら Y 優先）。
-     * ヒステリシスのラッチ状態と現在値の両方を使って、方向ぶれを抑えつつ斜め入力を単方向化する。
-     */
-    function resolveJoystickDominantDirection(jx: number, jy: number): JoystickDirection {
-        let yActive = joystickHysUp || joystickHysDown;
-        let xActive = joystickHysLeft || joystickHysRight;
-        if (yActive && xActive) {
-            let ay = Math.abs(jy);
-            let ax = Math.abs(jx);
-            if (ay >= ax) return joystickHysUp ? JoystickDirection.Up : JoystickDirection.Down;
-            return joystickHysRight ? JoystickDirection.Right : JoystickDirection.Left;
-        }
-        if (yActive) return joystickHysUp ? JoystickDirection.Up : JoystickDirection.Down;
-        if (xActive) return joystickHysRight ? JoystickDirection.Right : JoystickDirection.Left;
-        return JoystickDirection.Center;
-    }
-
     function pollJoystickDominantEvent(): void {
         init();
         let jx = joystickValue(Axis.X);
         let jy = joystickValue(Axis.Y);
         updateJoystickDirectionHysteresis(jx, jy);
-        let d = resolveJoystickDominantDirection(jx, jy);
-        if (!joystickDominantPrimed) {
-            joystickDominantPrimed = true;
-            joystickDominantLast = d;
+        let up = joystickHysUp;
+        let down = joystickHysDown;
+        let left = joystickHysLeft;
+        let right = joystickHysRight;
+        let center = !up && !down && !left && !right;
+
+        if (!joystickEventPrimed) {
+            joystickEventPrimed = true;
+            joystickPrevUp = up;
+            joystickPrevDown = down;
+            joystickPrevLeft = left;
+            joystickPrevRight = right;
+            joystickPrevCenter = center;
             return;
         }
-        if (d != joystickDominantLast) {
-            joystickDominantLast = d;
-            control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, d);
-        }
+
+        if (up && !joystickPrevUp) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Up);
+        if (down && !joystickPrevDown) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Down);
+        if (left && !joystickPrevLeft) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Left);
+        if (right && !joystickPrevRight) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Right);
+        if (center && !joystickPrevCenter) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Center);
+
+        joystickPrevUp = up;
+        joystickPrevDown = down;
+        joystickPrevLeft = left;
+        joystickPrevRight = right;
+        joystickPrevCenter = center;
     }
 
     function ensureJoystickEventPoller(): void {
@@ -251,7 +254,7 @@ namespace ybemh02 {
         });
     }
 
-    /** 優先方向（**Y 優先**）が変わったときにハンドラを実行。100ms ポーリング。`joystickDirection` と同じヒステリシス・**JoystickMode**。中央に戻ったときも発火。 */
+    /** 各方向の「入った瞬間」にハンドラを実行。100ms ポーリング。`joystickDirection` と同じヒステリシス・**JoystickMode**。中央に戻ったときも発火。 */
     //% block="ジョイスティックが %direction になったとき"
     //% weight=94
     //% help=github:pxt-yb-emh02/docs/on-joystick-event
