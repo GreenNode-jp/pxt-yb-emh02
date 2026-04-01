@@ -1,6 +1,6 @@
 # onJoystickEvent
 
-ジョイスティックの**優先方向**（**Y 優先**: 上→下→左→右、いずれもなければ中央）が**変わったとき**に処理を実行する。約 **100ms** ごとにポーリング。**joystickDirection** と同じヒステリシス・**JoystickMode**。中央に戻ったときもイベントが発生する。
+ジョイスティックの**優先方向**（**Y 優先**: 上→下→左→右、いずれもなければ中央）が**変わったとき**に処理を実行する。約 **100ms** ごとにポーリング。**joystickDirection** と同じヒステリシス・**JoystickMode**（左右は **X 符号反転**あり）。中央に戻ったときもイベントが発生する。
 
 ```sig
 ybemh02.onJoystickEvent(ybemh02.JoystickDirection.Up, function () {})

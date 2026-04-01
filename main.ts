@@ -181,12 +181,12 @@ namespace ybemh02 {
         }
     }
 
-    /** `joystickValue` ベース（JoystickMode 反映済み）。ヒステリシス: 入り **HIGH**（中心 60% + 10%）、抜け **LOW**（中心 − 10%）。**中央**は四方向いずれもラッチしていないとき。 */
+    /** `joystickValue` ベース（JoystickMode 反映済み）。左右は **-X**（`joystickValue(Axis.X)` はそのまま）。ヒステリシス: 入り **HIGH**、抜け **LOW**。**中央**は四方向いずれもラッチしていないとき。 */
     //% block="ジョイスティックが %direction に傾いている"
     //% help=github:pxt-yb-emh02/docs/joystick-direction
     export function joystickDirection(direction: JoystickDirection): boolean {
         init();
-        let jx = joystickValue(Axis.X);
+        let jx = -joystickValue(Axis.X);
         let jy = joystickValue(Axis.Y);
         updateJoystickDirectionHysteresis(jx, jy);
         switch (direction) {
@@ -216,7 +216,7 @@ namespace ybemh02 {
 
     function pollJoystickDominantEvent(): void {
         init();
-        let jx = joystickValue(Axis.X);
+        let jx = -joystickValue(Axis.X);
         let jy = joystickValue(Axis.Y);
         updateJoystickDirectionHysteresis(jx, jy);
         let d = resolveJoystickDominantDirection();
