@@ -47,7 +47,9 @@ namespace ybemh02 {
         //% block="左"
         Left = 2,
         //% block="右"
-        Right = 3
+        Right = 3,
+        //% block="中央"
+        Center = 4
     }
 
     export enum ButtonEvent {
@@ -150,6 +152,8 @@ namespace ybemh02 {
                 return jx <= JOYSTICK_DIRECTION_THRESHOLD;
             case JoystickDirection.Right:
                 return jx >= -JOYSTICK_DIRECTION_THRESHOLD;
+            case JoystickDirection.Center:
+                return Math.abs(jx) < JOYSTICK_DIRECTION_THRESHOLD && Math.abs(jy) < JOYSTICK_DIRECTION_THRESHOLD;
             default:
                 return false;
         }
