@@ -1,6 +1,7 @@
 # joystickDirection
 
-指定方向へ十分傾いていれば `true`。**JoystickMode** は **joystickValue** と同じ。**閾値**は最大振幅（±127）の **60%**（整数 **76**）。
+指定方向へ十分傾いていれば `true`。
+**閾値**は最大振幅（±127）の **60%**（整数 **76**）。
 
 ```sig
 ybemh02.joystickDirection(ybemh02.JoystickDirection.Up)

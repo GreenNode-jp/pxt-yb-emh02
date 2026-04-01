@@ -5,9 +5,7 @@ namespace ybemh02 {
     const JOYSTICK_CENTER = 512;
     const JOYSTICK_SCALE_DIV = 4;
     const JOYSTICK_ROUND_BIAS = 2;
-    /** `joystickValue` のクリップ上限（絶対値）。 */
     const JOYSTICK_VALUE_MAX = 127;
-    /** 方向判定の閾値（最大振幅に対する %）。 */
     const JOYSTICK_DIRECTION_THRESHOLD_PERCENT = 60;
     const JOYSTICK_DIRECTION_THRESHOLD = Math.idiv(JOYSTICK_VALUE_MAX * JOYSTICK_DIRECTION_THRESHOLD_PERCENT, 100);
 
@@ -32,7 +30,7 @@ namespace ybemh02 {
     export enum Axis {
         X = AnalogPin.P2,
         Y = AnalogPin.P1,
-        //% block="XY（x+256y）"
+        //% block="XY"
         XY = -1
     }
 
@@ -73,7 +71,6 @@ namespace ybemh02 {
         initialized = true;
     }
 
-    /** **通常**: `idiv(|v|+8,16)*16-1` で離散化。**詳細**: 正規化のまま。 */
     //% block="ジョイスティックモードを %mode に設定する"
     //% weight=93
     //% help=github:pxt-yb-emh02/docs/set-joystick-mode
