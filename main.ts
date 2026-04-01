@@ -7,22 +7,9 @@ namespace ybemh02 {
     const JOYSTICK_ROUND_BIAS = 2;
     /** `joystickValue` のクリップ上限（絶対値）。 */
     const JOYSTICK_VALUE_MAX = 127;
-    /** 方向ヒステリシスの基準（最大振幅に対する %）。入り = これ + `JOYSTICK_DIRECTION_HYSTERESIS_PCT`、抜け = これ − 同じ。 */
-    const JOYSTICK_DIRECTION_CENTER_PERCENT = 60;
-    const JOYSTICK_DIRECTION_HYSTERESIS_PCT = 10;
-    const JOYSTICK_DIRECTION_HIGH_PERCENT = JOYSTICK_DIRECTION_CENTER_PERCENT + JOYSTICK_DIRECTION_HYSTERESIS_PCT;
-    const JOYSTICK_DIRECTION_LOW_PERCENT = JOYSTICK_DIRECTION_CENTER_PERCENT - JOYSTICK_DIRECTION_HYSTERESIS_PCT;
-    const JOYSTICK_DIRECTION_HIGH = Math.idiv(JOYSTICK_VALUE_MAX * JOYSTICK_DIRECTION_HIGH_PERCENT, 100);
-    const JOYSTICK_DIRECTION_LOW = Math.idiv(JOYSTICK_VALUE_MAX * JOYSTICK_DIRECTION_LOW_PERCENT, 100);
-
-    let joystickHysUp = false;
-    let joystickHysDown = false;
-    let joystickHysLeft = false;
-    let joystickHysRight = false;
-
-    /** ジョイスティック優先方向イベント用 `control.onEvent` のソース ID（他拡張と被らないよう空き帯）。 */
-    const JOYSTICK_DOMINANT_EVENT_SRC = 14002;
-    const JOYSTICK_EVENT_POLL_MS = 100;
+    /** 方向判定の閾値（最大振幅に対する %）。 */
+    const JOYSTICK_DIRECTION_THRESHOLD_PERCENT = 60;
+    const JOYSTICK_DIRECTION_THRESHOLD = Math.idiv(JOYSTICK_VALUE_MAX * JOYSTICK_DIRECTION_THRESHOLD_PERCENT, 100);
 
     export enum JoystickMode {
         //% block="通常"
@@ -68,14 +55,6 @@ namespace ybemh02 {
         //% block="中央"
         Center = 4
     }
-
-    let joystickEventPollerStarted = false;
-    let joystickEventPrimed = false;
-    let joystickPrevUp = false;
-    let joystickPrevDown = false;
-    let joystickPrevLeft = false;
-    let joystickPrevRight = false;
-    let joystickPrevCenter = true;
 
     export enum ButtonEvent {
         //% block="押された"
@@ -156,112 +135,38 @@ namespace ybemh02 {
     //% block="ジョイスティックXY %packed の %component"
     //% help=github:pxt-yb-emh02/docs/unpack-joystick-value
     export function unpackJoystickValue(packed: number, component: JoystickAxis): number {
-        let jy = Math.trunc(packed / 256);
+        // `packed = x + 256*y` かつ `x` は [-127,127] なので、
+        // `packed/256` を四捨五入すると常に `y` を復元できる。
+        let jy = Math.round(packed / 256);
         let jx = packed - 256 * jy;
         return component == JoystickAxis.X ? jx : jy;
     }
 
-    /** `joystickValue` と同じ単位。各軸で |v|≥HIGH で方向オン、ラッチ解除は |v|＜LOW（LOW＜HIGH）。 */
-    function updateJoystickDirectionHysteresis(jx: number, jy: number): void {
-        if (!joystickHysUp) {
-            if (jy >= JOYSTICK_DIRECTION_HIGH) joystickHysUp = true;
-        } else {
-            if (jy < JOYSTICK_DIRECTION_LOW) joystickHysUp = false;
-        }
-        if (!joystickHysDown) {
-            if (jy <= -JOYSTICK_DIRECTION_HIGH) joystickHysDown = true;
-        } else {
-            if (jy > -JOYSTICK_DIRECTION_LOW) joystickHysDown = false;
-        }
-        if (!joystickHysLeft) {
-            if (jx <= -JOYSTICK_DIRECTION_HIGH) joystickHysLeft = true;
-        } else {
-            if (jx > -JOYSTICK_DIRECTION_LOW) joystickHysLeft = false;
-        }
-        if (!joystickHysRight) {
-            if (jx >= JOYSTICK_DIRECTION_HIGH) joystickHysRight = true;
-        } else {
-            if (jx < JOYSTICK_DIRECTION_LOW) joystickHysRight = false;
+    function directionState(jx: number, jy: number, direction: JoystickDirection): boolean {
+        switch (direction) {
+            case JoystickDirection.Up:
+                return jy >= JOYSTICK_DIRECTION_THRESHOLD;
+            case JoystickDirection.Down:
+                return jy <= -JOYSTICK_DIRECTION_THRESHOLD;
+            case JoystickDirection.Left:
+                return jx <= -JOYSTICK_DIRECTION_THRESHOLD;
+            case JoystickDirection.Right:
+                return jx >= JOYSTICK_DIRECTION_THRESHOLD;
+            case JoystickDirection.Center:
+                return Math.abs(jx) < JOYSTICK_DIRECTION_THRESHOLD && Math.abs(jy) < JOYSTICK_DIRECTION_THRESHOLD;
+            default:
+                return false;
         }
     }
 
-    /** `joystickValue` ベース（JoystickMode 反映済み）。ヒステリシス: 入り **HIGH**、抜け **LOW**。**中央**は四方向いずれもラッチしていないとき。 */
+    /** `joystickValue` ベース（JoystickMode 反映済み）。閾値は最大振幅の 60%。 */
     //% block="ジョイスティックが %direction に傾いている"
     //% help=github:pxt-yb-emh02/docs/joystick-direction
     export function joystickDirection(direction: JoystickDirection): boolean {
         init();
         let jx = joystickValue(Axis.X);
         let jy = joystickValue(Axis.Y);
-        updateJoystickDirectionHysteresis(jx, jy);
-        switch (direction) {
-            case JoystickDirection.Up:
-                return joystickHysUp;
-            case JoystickDirection.Down:
-                return joystickHysDown;
-            case JoystickDirection.Left:
-                return joystickHysLeft;
-            case JoystickDirection.Right:
-                return joystickHysRight;
-            case JoystickDirection.Center:
-                return !joystickHysUp && !joystickHysDown && !joystickHysLeft && !joystickHysRight;
-            default:
-                return false;
-        }
-    }
-
-    function pollJoystickDominantEvent(): void {
-        init();
-        let jx = joystickValue(Axis.X);
-        let jy = joystickValue(Axis.Y);
-        updateJoystickDirectionHysteresis(jx, jy);
-        let up = joystickHysUp;
-        let down = joystickHysDown;
-        let left = joystickHysLeft;
-        let right = joystickHysRight;
-        let center = !up && !down && !left && !right;
-
-        if (!joystickEventPrimed) {
-            joystickEventPrimed = true;
-            joystickPrevUp = up;
-            joystickPrevDown = down;
-            joystickPrevLeft = left;
-            joystickPrevRight = right;
-            joystickPrevCenter = center;
-            return;
-        }
-
-        if (up && !joystickPrevUp) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Up);
-        if (down && !joystickPrevDown) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Down);
-        if (left && !joystickPrevLeft) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Left);
-        if (right && !joystickPrevRight) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Right);
-        if (center && !joystickPrevCenter) control.raiseEvent(JOYSTICK_DOMINANT_EVENT_SRC, JoystickDirection.Center);
-
-        joystickPrevUp = up;
-        joystickPrevDown = down;
-        joystickPrevLeft = left;
-        joystickPrevRight = right;
-        joystickPrevCenter = center;
-    }
-
-    function ensureJoystickEventPoller(): void {
-        if (joystickEventPollerStarted) return;
-        joystickEventPollerStarted = true;
-        control.runInBackground(() => {
-            while (true) {
-                pollJoystickDominantEvent();
-                basic.pause(JOYSTICK_EVENT_POLL_MS);
-            }
-        });
-    }
-
-    /** 各方向の「入った瞬間」にハンドラを実行。100ms ポーリング。`joystickDirection` と同じヒステリシス・**JoystickMode**。中央に戻ったときも発火。 */
-    //% block="ジョイスティックが %direction になったとき"
-    //% weight=94
-    //% help=github:pxt-yb-emh02/docs/on-joystick-event
-    export function onJoystickEvent(direction: JoystickDirection, handler: () => void): void {
-        init();
-        ensureJoystickEventPoller();
-        control.onEvent(JOYSTICK_DOMINANT_EVENT_SRC, direction, handler);
+        return directionState(jx, jy, direction);
     }
 
     /** P0 で振動 ON/OFF。 */

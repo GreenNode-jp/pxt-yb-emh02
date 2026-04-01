@@ -1,6 +1,6 @@
 # joystickDirection
 
-指定方向へ十分傾いていれば `true`。**JoystickMode** は **joystickValue** と同じ。**ヒステリシス**（最大振幅 ±127 に対する割合）: 基準 **60%**、**入り 70%**（整数 **88**）、**抜け 50%**（整数 **63**）。**中央**は上下左右いずれもラッチしていないとき。
+指定方向へ十分傾いていれば `true`。**JoystickMode** は **joystickValue** と同じ。**閾値**は最大振幅（±127）の **60%**（整数 **76**）。
 
 ```sig
 ybemh02.joystickDirection(ybemh02.JoystickDirection.Up)
