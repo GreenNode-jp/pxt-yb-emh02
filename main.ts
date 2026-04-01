@@ -1,5 +1,5 @@
 /** YB-EMH02 向け拡張（ボタン・ジョイスティック・振動）。ブロックのヘルプは docs の Markdown（`//% help=github:pxt-yb-emh02/docs/名前`、拡張子なし）。 */
-//% weight=100 color=#2c3e50 icon="\uf11b" block="コントローラ"
+//% weight=100 color=#488470 icon="\uf11b" block="コントローラ"
 namespace ybemh02 {
     let initialized = false;
     const JOYSTICK_CENTER = 512;
