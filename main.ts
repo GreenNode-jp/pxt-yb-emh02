@@ -181,12 +181,12 @@ namespace ybemh02 {
         }
     }
 
-    /** `joystickValue` ベース（JoystickMode 反映済み）。左右は **-X**（`joystickValue(Axis.X)` はそのまま）。ヒステリシス: 入り **HIGH**、抜け **LOW**。**中央**は四方向いずれもラッチしていないとき。 */
+    /** `joystickValue` ベース（JoystickMode 反映済み）。ヒステリシス: 入り **HIGH**、抜け **LOW**。**中央**は四方向いずれもラッチしていないとき。 */
     //% block="ジョイスティックが %direction に傾いている"
     //% help=github:pxt-yb-emh02/docs/joystick-direction
     export function joystickDirection(direction: JoystickDirection): boolean {
         init();
-        let jx = -joystickValue(Axis.X);
+        let jx = joystickValue(Axis.X);
         let jy = joystickValue(Axis.Y);
         updateJoystickDirectionHysteresis(jx, jy);
         switch (direction) {
@@ -205,21 +205,30 @@ namespace ybemh02 {
         }
     }
 
-    /** Y 優先: 上→下→左→右のいずれかがラッチされていればそれ（複数時は先に列挙した方向）、いずれも無ければ中央。`joystickDirection` と同じヒステリシス状態を使う。 */
-    function resolveJoystickDominantDirection(): JoystickDirection {
-        if (joystickHysUp) return JoystickDirection.Up;
-        if (joystickHysDown) return JoystickDirection.Down;
-        if (joystickHysLeft) return JoystickDirection.Left;
-        if (joystickHysRight) return JoystickDirection.Right;
+    /**
+     * 主軸で優先方向を 1 つに決める（同程度なら Y 優先）。
+     * ヒステリシスのラッチ状態と現在値の両方を使って、方向ぶれを抑えつつ斜め入力を単方向化する。
+     */
+    function resolveJoystickDominantDirection(jx: number, jy: number): JoystickDirection {
+        let yActive = joystickHysUp || joystickHysDown;
+        let xActive = joystickHysLeft || joystickHysRight;
+        if (yActive && xActive) {
+            let ay = Math.abs(jy);
+            let ax = Math.abs(jx);
+            if (ay >= ax) return joystickHysUp ? JoystickDirection.Up : JoystickDirection.Down;
+            return joystickHysRight ? JoystickDirection.Right : JoystickDirection.Left;
+        }
+        if (yActive) return joystickHysUp ? JoystickDirection.Up : JoystickDirection.Down;
+        if (xActive) return joystickHysRight ? JoystickDirection.Right : JoystickDirection.Left;
         return JoystickDirection.Center;
     }
 
     function pollJoystickDominantEvent(): void {
         init();
-        let jx = -joystickValue(Axis.X);
+        let jx = joystickValue(Axis.X);
         let jy = joystickValue(Axis.Y);
         updateJoystickDirectionHysteresis(jx, jy);
-        let d = resolveJoystickDominantDirection();
+        let d = resolveJoystickDominantDirection(jx, jy);
         if (!joystickDominantPrimed) {
             joystickDominantPrimed = true;
             joystickDominantLast = d;
