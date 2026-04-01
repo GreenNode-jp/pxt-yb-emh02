@@ -149,9 +149,9 @@ namespace ybemh02 {
             case JoystickDirection.Down:
                 return jy <= -JOYSTICK_DIRECTION_THRESHOLD;
             case JoystickDirection.Left:
-                return jx <= JOYSTICK_DIRECTION_THRESHOLD;
+                return jx <= -JOYSTICK_DIRECTION_THRESHOLD;
             case JoystickDirection.Right:
-                return jx >= -JOYSTICK_DIRECTION_THRESHOLD;
+                return jx >= JOYSTICK_DIRECTION_THRESHOLD;
             case JoystickDirection.Center:
                 return Math.abs(jx) < JOYSTICK_DIRECTION_THRESHOLD && Math.abs(jy) < JOYSTICK_DIRECTION_THRESHOLD;
             default:
