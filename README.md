@@ -26,6 +26,7 @@
 - [setJoystickMode](docs/set-joystick-mode.md)
 - [unpackJoystickValue](docs/unpack-joystick-value.md)
 - [onButtonEvent](docs/on-button-event.md)
+- [onJoystickEvent](docs/on-joystick-event.md)
 - [setVibration](docs/set-vibration.md)
 
 
