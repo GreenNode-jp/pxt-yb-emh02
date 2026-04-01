@@ -1,6 +1,6 @@
 # joystickDirection
 
-指定方向へ十分傾いていれば `true`。**joystickValue** と同じ値・モード。**閾値**: 絶対値 **80**。
+指定方向へ十分傾いていれば `true`。**joystickValue** と同じ値・**JoystickMode**。**ヒステリシス**（最大振幅 ±127 に対する割合）: 基準 **60%**、**入り 70%**（整数 **88**）、**抜け 50%**（整数 **63**）。**中央**は上下左右いずれもラッチしていないとき。
 
 ```sig
 ybemh02.joystickDirection(ybemh02.JoystickDirection.Up)
@@ -8,7 +8,7 @@ ybemh02.joystickDirection(ybemh02.JoystickDirection.Up)
 
 ## Parameters
 
-**direction**: 上 / 下 / 左 / 右
+**direction**: 上 / 下 / 左 / 右 / 中央
 
 ## Returns
 

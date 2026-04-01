@@ -5,7 +5,20 @@ namespace ybemh02 {
     const JOYSTICK_CENTER = 512;
     const JOYSTICK_SCALE_DIV = 4;
     const JOYSTICK_ROUND_BIAS = 2;
-    const JOYSTICK_DIRECTION_THRESHOLD = 80;
+    /** `joystickValue` のクリップ上限（絶対値）。 */
+    const JOYSTICK_VALUE_MAX = 127;
+    /** 方向ヒステリシスの基準（最大振幅に対する %）。入り = これ + `JOYSTICK_DIRECTION_HYSTERESIS_PCT`、抜け = これ − 同じ。 */
+    const JOYSTICK_DIRECTION_CENTER_PERCENT = 60;
+    const JOYSTICK_DIRECTION_HYSTERESIS_PCT = 10;
+    const JOYSTICK_DIRECTION_HIGH_PERCENT = JOYSTICK_DIRECTION_CENTER_PERCENT + JOYSTICK_DIRECTION_HYSTERESIS_PCT;
+    const JOYSTICK_DIRECTION_LOW_PERCENT = JOYSTICK_DIRECTION_CENTER_PERCENT - JOYSTICK_DIRECTION_HYSTERESIS_PCT;
+    const JOYSTICK_DIRECTION_HIGH = Math.idiv(JOYSTICK_VALUE_MAX * JOYSTICK_DIRECTION_HIGH_PERCENT, 100);
+    const JOYSTICK_DIRECTION_LOW = Math.idiv(JOYSTICK_VALUE_MAX * JOYSTICK_DIRECTION_LOW_PERCENT, 100);
+
+    let joystickHysUp = false;
+    let joystickHysDown = false;
+    let joystickHysLeft = false;
+    let joystickHysRight = false;
 
     export enum JoystickMode {
         //% block="通常"
@@ -113,8 +126,8 @@ namespace ybemh02 {
         let d = raw - JOYSTICK_CENTER;
         let q = Math.idiv(d + (d >= 0 ? JOYSTICK_ROUND_BIAS : -JOYSTICK_ROUND_BIAS), JOYSTICK_SCALE_DIV);
         let val = -q;
-        if (val < -127) val = -127;
-        else if (val > 127) val = 127;
+        if (val < -JOYSTICK_VALUE_MAX) val = -JOYSTICK_VALUE_MAX;
+        else if (val > JOYSTICK_VALUE_MAX) val = JOYSTICK_VALUE_MAX;
         return val;
     }
 
@@ -136,24 +149,49 @@ namespace ybemh02 {
         return component == JoystickAxis.X ? jx : jy;
     }
 
-    /** `joystickValue` ベース。傾きの絶対値が 80 以上ならその方向とみなす。 */
+    /** `joystickValue` と同じ単位。各軸で |v|≥HIGH で方向オン、ラッチ解除は |v|＜LOW（LOW＜HIGH）。 */
+    function updateJoystickDirectionHysteresis(jx: number, jy: number): void {
+        if (!joystickHysUp) {
+            if (jy >= JOYSTICK_DIRECTION_HIGH) joystickHysUp = true;
+        } else {
+            if (jy < JOYSTICK_DIRECTION_LOW) joystickHysUp = false;
+        }
+        if (!joystickHysDown) {
+            if (jy <= -JOYSTICK_DIRECTION_HIGH) joystickHysDown = true;
+        } else {
+            if (jy > -JOYSTICK_DIRECTION_LOW) joystickHysDown = false;
+        }
+        if (!joystickHysLeft) {
+            if (jx <= -JOYSTICK_DIRECTION_HIGH) joystickHysLeft = true;
+        } else {
+            if (jx > -JOYSTICK_DIRECTION_LOW) joystickHysLeft = false;
+        }
+        if (!joystickHysRight) {
+            if (jx >= JOYSTICK_DIRECTION_HIGH) joystickHysRight = true;
+        } else {
+            if (jx < JOYSTICK_DIRECTION_LOW) joystickHysRight = false;
+        }
+    }
+
+    /** `joystickValue` ベース（JoystickMode 反映済み）。ヒステリシス: 入り **HIGH**（中心 60% + 10%）、抜け **LOW**（中心 − 10%）。**中央**は四方向いずれもラッチしていないとき。 */
     //% block="ジョイスティックが %direction に傾いている"
     //% help=github:pxt-yb-emh02/docs/joystick-direction
     export function joystickDirection(direction: JoystickDirection): boolean {
         init();
         let jx = joystickValue(Axis.X);
         let jy = joystickValue(Axis.Y);
+        updateJoystickDirectionHysteresis(jx, jy);
         switch (direction) {
             case JoystickDirection.Up:
-                return jy >= JOYSTICK_DIRECTION_THRESHOLD;
+                return joystickHysUp;
             case JoystickDirection.Down:
-                return jy <= -JOYSTICK_DIRECTION_THRESHOLD;
+                return joystickHysDown;
             case JoystickDirection.Left:
-                return jx <= -JOYSTICK_DIRECTION_THRESHOLD;
+                return joystickHysLeft;
             case JoystickDirection.Right:
-                return jx >= JOYSTICK_DIRECTION_THRESHOLD;
+                return joystickHysRight;
             case JoystickDirection.Center:
-                return Math.abs(jx) < JOYSTICK_DIRECTION_THRESHOLD && Math.abs(jy) < JOYSTICK_DIRECTION_THRESHOLD;
+                return !joystickHysUp && !joystickHysDown && !joystickHysLeft && !joystickHysRight;
             default:
                 return false;
         }
